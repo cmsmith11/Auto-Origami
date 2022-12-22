@@ -9,7 +9,7 @@ import copy
 
 print('starting origami...')
 
-CREASE_SPEED = 2
+CREASE_SPEED = 3
 step = 0.001
 EPS = 0.0001
 group_colors = ['#73B15B', '#D3974C', '#A467D9', '#E4EE5B', '#EB4343', '#5452E0']
@@ -537,6 +537,20 @@ def draw_creases(ax, circles, ratio):
 	return(circles)
 	# plt.show()
 
+# point_info: {i: [x, y, [n1, n2, ...]], ...}
+def draw_stick(ax, point_info):
+	lines = []
+	for p in point_info:
+		p1x, p1y = point_info[p][0], point_info[p][1]
+		for n in point_info[p][2]:
+			p2x, p2y = point_info[n][0], point_info[n][1]
+			lines.append([(p1x, p1y), (p2x, p2y)])
+
+	lc = mc.LineCollection(lines, color='black')
+	ax.add_collection(lc)
+	plt.pause(0.01)
+	
+
 # p1, vert, p3 are three neighboring Circles
 def find_theta(p1, vert, p3):
 	# law of cosines
@@ -677,21 +691,30 @@ def dict_to_structures(point_info):
 	return((circle_data, group_data, groups))
 
 
-# point_info = stk_to_dict('temp.stk')
-# point_info = stk_to_dict('insect.stk')
+# #point_info = stk_to_dict('insect.stk')
+# point_info = stk_to_dict('tarantula.stk')
 # point_info = stk_to_dict('10-flap-leaf.stk')
-# point_info = stk_to_dict('1-7.stk')
+# # point_info = stk_to_dict('1-7.stk')
 # point_info = stk_to_dict('8-equal-flaps.stk')
-# point_info = stk_to_dict('man.stk')
+# # point_info = stk_to_dict('man.stk')
 # point_info = stk_to_dict('hand.stk')
 # point_info = stk_to_dict('dragon.stk')
 # point_info = stk_to_dict('long-tail-rat.stk')
-point_info = stk_to_dict('3-short-front-3-long-back.stk')
-#circle_data, group_data, g_locs = dict_to_structures(point_info)
-circle_data, group_data, groups = dict_to_structures(point_info)
+# point_info = stk_to_dict('3-short-front-3-long-back.stk')
+# point_info = stk_to_dict('temp.stk')
 
-print('circle_data:', circle_data)
-print('group_data:', group_data)
+
+#circle_data, group_data, g_locs = dict_to_structures(point_info)
+#circle_data, group_data, groups = dict_to_structures(point_info)
+
+
+
+
+
+
+
+# print('circle_data:', circle_data)
+# print('group_data:', group_data)
 #print('g_locs:', g_locs)
 
 
@@ -730,7 +753,7 @@ print('group_data:', group_data)
 # 	[1 for i in range(7)]
 # ]
 
-# group_data = {}
+group_data = {}
 
 # 0.) recieve data in p(x, y, [neighbors]) form, convert
 # 1.) normalize lengths
@@ -755,6 +778,8 @@ print('group_data:', group_data)
 
 #circles = [Circle(r, Group(i, g_locs[i][0], g_locs[i][1])) for i, g in enumerate(circle_data) for r in g]
 
+
+"""
 fig, ax = plt.subplots()
 fig.set_size_inches(6, 6)
 
@@ -771,7 +796,6 @@ for i in range(num_trials):
 			x1, y1 = point_info[p][0], point_info[p][1]
 			n = point_info[p][2][0]
 			x2, y2 = point_info[n][0], point_info[n][1]
-			#circles.append(Circle(point_dist(x1, y1, x2, y2), Group(groups.index(n), -1, -1), x1, y1))
 			circles.append(Circle(p, point_dist(x1, y1, x2, y2), groups.index(n), x1, y1))
 	seed = copy.deepcopy(circles)
 
@@ -804,3 +828,52 @@ print(max_scale)
 animate(ax, champ_seed)
 print('finished animation')
 plt.show()
+
+"""
+
+stks = [
+	'tarantula.stk',
+	'hand.stk',
+	'8-equal-flaps.stk',
+	'dragon.stk',
+	'10-flap-leaf.stk',
+	'3-short-front-3-long-back.stk',
+	'long-tail-rat.stk',
+	'dwarf.stk'
+]
+
+
+def run_loop():
+	global group_data
+	global ax
+	i = 0
+	while True:
+		print('looping!', i)
+		point_info = stk_to_dict(stks[i % len(stks)])
+		circle_data, group_data, groups = dict_to_structures(point_info)
+		circles = []
+		for p in point_info:
+			if p not in groups:
+				x1, y1 = point_info[p][0], point_info[p][1]
+				n = point_info[p][2][0]
+				x2, y2 = point_info[n][0], point_info[n][1]
+				circles.append(Circle(p, point_dist(x1, y1, x2, y2), groups.index(n), x1, y1))
+
+		draw_stick(ax, point_info)
+		plt.pause(2)
+		ax.clear()
+		animate(ax, circles)
+		plt.pause(4)
+		ax.clear()
+		print('next cp!')
+		i += 1
+
+fig, ax = plt.subplots()
+fig.set_size_inches(6, 6)
+ax.set_aspect('equal')
+run_loop()
+
+
+
+
+
